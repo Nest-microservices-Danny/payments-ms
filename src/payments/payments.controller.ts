@@ -29,7 +29,7 @@ export class PaymentsController {
   }
 
   @Post('webhook')
-  async stripeWebhook(@Req() req: Request, @Res() res: Response) {
-    return await this.paymentsService.stripeWebhook(req, res);
+  stripeWebhook(@Req() req: Request, @Res() res: Response) {
+    return this.paymentsService.stripeWebhook(req, res);
   }
 }
