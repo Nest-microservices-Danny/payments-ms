@@ -1,0 +1,2 @@
+// export const PRODUCTS_SERVICE = 'PRODUCTS_SERVICE';
+export const NATS_SERVICES = 'NATS_SERVICE';
