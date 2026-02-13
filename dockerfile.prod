@@ -1,0 +1,54 @@
+# ===================================
+# Dependencias -instalacion de las dependencias
+# ===================================
+FROM node:21-alpine3.19 AS deps
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install
+
+# ===================================
+# Builder -construccion de la imagen
+# ===================================
+FROM node:21-alpine3.19 AS build
+
+WORKDIR /usr/src/app
+
+#copiar de deps, los modulos de noce
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+
+#copiar todo el codigo fuente de la aplicacion
+COPY . .
+
+#se puede ejecutar npm run build para construir la aplicacion, osea transpilar el codigo fuente a codigo que pueda ser ejecutado por node
+RUN npm run build
+
+# dependencias de Produccion
+RUN npm ci --only=production && npm cache clean --force
+
+# ===================================
+# Crear la imagen de producción
+# ===================================
+FROM node:21-alpine3.19 AS prod
+
+WORKDIR /usr/src/app
+
+#copiar los modulos de node de produccion
+COPY --from=build /usr/src/app/node_modules ./node_modules
+
+#copiar el codigo fuente de la aplicacion
+COPY --from=build /usr/src/app/dist ./dist
+
+#env es para establecer variables de entorno, en este caso se establece NODE_ENV a production, lo que indica que la aplicacion se ejecutara en modo produccion
+ENV NODE_ENV=production
+
+#usuario de node, para que la aplicacion se ejecute con un usuario no root, lo que es una buena practica de seguridad
+USER node
+
+
+EXPOSE 3000
+
+CMD ["node", "dist/main.js"]
